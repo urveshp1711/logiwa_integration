@@ -9,6 +9,9 @@ app.use(express.json());
 
 // Middleware to authenticate API Key and Secret
 const authenticateApiKey = (req, res, next) => {
+
+    console.log(req.headers);
+
     const apiKey = req.headers['x-api-key'];
     const apiSecret = req.headers['x-api-secret'];
 
