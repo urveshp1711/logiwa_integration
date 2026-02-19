@@ -36,8 +36,8 @@ const authenticateApiKey = (req, res, next) => {
 
 app.post("/logiwa/shipping/rates", authenticateApiKey, shippingController.getRates);
 app.post("/logiwa/shipping/label", authenticateApiKey, shippingController.createLabel);
-// app.post("/shipping/void", shippingController.voidLabel);
-// app.post("/shipping/eod", shippingController.endOfDay);
+app.post("/logiwa/shipping/void", authenticateApiKey, shippingController.voidLabel);
+app.post("/logiwa/shipping/eod", authenticateApiKey, shippingController.endOfDay);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Shipping API running on http://localhost:${PORT}/`));

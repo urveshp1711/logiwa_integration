@@ -32,12 +32,34 @@ export default {
     },
 
     async voidLabel(req, res) {
-        await carrierService.voidLabel(req.body);
-        res.json({ Success: true });
+        try {
+            console.log(`[${new Date().toISOString()}] voidLabel called with TrackingNumber: ${req.body.TrackingNumber || 'N/A'}`);
+            const result = await carrierService.voidLabel(req.body);
+            console.log(`[${new Date().toISOString()}] voidLabel completed for tracking: ${result.TrackingNumber}`);
+            res.json(result);
+        } catch (e) {
+            console.log(`[${new Date().toISOString()}] voidLabel error: ${e.message}`);
+            res.json({
+                Success: false,
+                ErrorCode: "VOID_FAILED",
+                ErrorMessage: e.message
+            });
+        }
     },
 
     async endOfDay(req, res) {
-        const reportId = await carrierService.closeDay(req.body);
-        res.json({ Success: true, ReportId: reportId });
+        try {
+            console.log(`[${new Date().toISOString()}] endOfDay called for warehouse: ${req.body.WarehouseCode || 'N/A'}`);
+            const result = await carrierService.closeDay(req.body);
+            console.log(`[${new Date().toISOString()}] endOfDay completed with report ID: ${result.ReportId}`);
+            res.json(result);
+        } catch (e) {
+            console.log(`[${new Date().toISOString()}] endOfDay error: ${e.message}`);
+            res.json({
+                Success: false,
+                ErrorCode: "EOD_FAILED",
+                ErrorMessage: e.message
+            });
+        }
     }
 };
