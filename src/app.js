@@ -10,22 +10,27 @@ app.use(express.json());
 // Middleware to authenticate API Key and Secret
 const authenticateApiKey = (req, res, next) => {
 
-    console.log(req.headers);
+    const authHeader = req.headers.authorization;
 
-    const apiKey = req.headers['x-api-key'];
-    const apiSecret = req.headers['x-api-secret'];
-
-    if (!apiKey || !apiSecret) {
-        console.log(`[${new Date().toISOString()}] Auth failed: Missing API Key or Secret`);
-        return res.status(401).json({ Success: false, ErrorMessage: "API Key and Secret required" });
+    if (!authHeader || !authHeader.startsWith("Basic ")) {
+        console.log(`[${new Date().toISOString()}] Auth failed: Missing Authorization header`);
+        return res.status(401).json({ Success: false, ErrorMessage: "Authorization required" });
     }
 
-    if (apiKey !== process.env.API_KEY || apiSecret !== process.env.API_SECRET) {
-        console.log(`[${new Date().toISOString()}] Auth failed: Invalid API Key or Secret`);
-        return res.status(401).json({ Success: false, ErrorMessage: "Invalid API Key or Secret" });
+    const base64Credentials = authHeader.split(" ")[1];
+    const credentials = Buffer.from(base64Credentials, "base64").toString("utf8");
+
+    const [username, password] = credentials.split(":");
+
+    if (
+        username !== process.env.API_KEY ||
+        password !== process.env.API_SECRET
+    ) {
+        console.log(`[${new Date().toISOString()}] Auth failed: Invalid credentials`);
+        return res.status(401).json({ Success: false, ErrorMessage: "Invalid credentials" });
     }
 
-    console.log(`[${new Date().toISOString()}] Auth successful for request to ${req.path}`);
+    console.log(`[${new Date().toISOString()}] Auth successful`);
     next();
 };
 
