@@ -1,5 +1,7 @@
 import RateRequest from "../models/getRates/rateRequest.js";
 import RateResponse from "../models/getRates/rateResponse.js";
+import LabelRequest from "../models/createLabel/labelRequest.js";
+import LabelResponse from "../models/createLabel/labelResponse.js";
 import { callCarrierApi } from "./carrierApi.js";
 
 export default {
@@ -30,12 +32,26 @@ export default {
   },
 
   async createLabel(data) {
-    // Call your internal carrier APIs here
-    return {
-      tracking: "1Z999999",
-      format: "PDF",
-      base64: "JVBERi0xLjQKJ..."
-    };
+    console.log(`[${new Date().toISOString()}] Building label request for OrderNumber: ${data.OrderNumber || 'N/A'}`);
+    const requestObj = new LabelRequest(data);
+
+    if (!requestObj.isValid()) {
+      throw new Error("Invalid label request: missing required fields");
+    }
+
+    const request = requestObj.toJSON();
+
+    try {
+      console.log(`[${new Date().toISOString()}] Calling carrier API for createLabel`);
+      const apiResponse = await callCarrierApi('createLabel', request);
+      console.log(`[${new Date().toISOString()}] Carrier API response received`);
+      const resp = new LabelResponse(apiResponse);
+      console.log(`[${new Date().toISOString()}] Label created with tracking: ${resp.tracking}`);
+      return resp.toJSON();
+    } catch (error) {
+      console.error(`[${new Date().toISOString()}] Carrier API error:`, error.message);
+      throw error;
+    }
   },
 
   async voidLabel(data) {

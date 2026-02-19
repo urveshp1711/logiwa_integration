@@ -35,7 +35,7 @@ const authenticateApiKey = (req, res, next) => {
 };
 
 app.post("/logiwa/shipping/rates", authenticateApiKey, shippingController.getRates);
-// app.post("/shipping/label", shippingController.createLabel);
+app.post("/logiwa/shipping/label", authenticateApiKey, shippingController.createLabel);
 // app.post("/shipping/void", shippingController.voidLabel);
 // app.post("/shipping/eod", shippingController.endOfDay);
 
