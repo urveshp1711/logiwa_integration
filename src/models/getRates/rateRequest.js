@@ -64,7 +64,7 @@ function mapToRateShipment(dataObj) {
   return {
     rateshipment: {
       account: "1001",
-      service: "canadazoneskipexpress",
+      // service: "canadazoneskipexpress",
 
       iso: shipToAddress?.CountryCode ?? "",
       province: shipToAddress?.StateOrProvinceCode ?? "",
