@@ -39,5 +39,4 @@ app.post("/logiwa/shipping/label", authenticateApiKey, shippingController.create
 app.post("/logiwa/shipping/void", authenticateApiKey, shippingController.voidLabel);
 app.post("/logiwa/shipping/eod", authenticateApiKey, shippingController.endOfDay);
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Shipping API running on http://localhost:${PORT}/`));
+export default app;

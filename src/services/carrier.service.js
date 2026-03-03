@@ -1,4 +1,4 @@
-import RateRequest from "../models/getRates/rateRequest.js";
+import mapToRateShipment from "../models/getRates/rateRequest.js";
 import RateResponse from "../models/getRates/rateResponse.js";
 import LabelRequest from "../models/createLabel/labelRequest.js";
 import LabelResponse from "../models/createLabel/labelResponse.js";
@@ -11,18 +11,19 @@ import { callCarrierApi } from "./carrierApi.js";
 export default {
   async getRates(data) {
     console.log(`[${new Date().toISOString()}] Building rate request for OrderNumber: ${data.OrderNumber || 'N/A'}`);
-    const requestObj = new RateRequest(data);
-    const request = requestObj.toJSON();
-
+    const requestObj = mapToRateShipment(data);
+    
     try {
       console.log(`[${new Date().toISOString()}] Calling carrier API for getRates`);
-      const apiResponse = await callCarrierApi('getRates', request);
+
+      const apiResponse = await callCarrierApi('getRates', requestObj);
       console.log(`[${new Date().toISOString()}] Carrier API response received`);
       // Assume apiResponse is an array of rates or has a 'rates' property
-      const rates = apiResponse.rates || (Array.isArray(apiResponse) ? apiResponse : []);
+      const rates = !Array.isArray(apiResponse.rateshipmentresponse) && !!apiResponse.rateshipmentresponse ? [apiResponse.rateshipmentresponse] :
+       (apiResponse.rateshipmentresponse ? apiResponse.rateshipmentresponse : []);
       const resp = new RateResponse(rates);
       console.log(`[${new Date().toISOString()}] Processed ${rates.length} rates`);
-      return { Request: request, Rates: resp.toJSON().Rates };
+      return { Request: requestObj, Rates: resp.toJSON().Rates };
     } catch (error) {
       console.error(`[${new Date().toISOString()}] Carrier API error:`, error.message);
       // Fallback to sample rates on error

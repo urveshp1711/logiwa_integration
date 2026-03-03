@@ -1,55 +1,84 @@
-export default class RateRequest {
-  constructor(data = {}) {
-    console.log(`[${new Date().toISOString()}] Constructing RateRequest for ${data.OrderNumber || 'unknown order'}`);
-    const shipFrom = data.ShipFrom || {};
-    const shipTo = data.ShipTo || {};
-    const packages = Array.isArray(data.Packages) ? data.Packages : [];
+// --------------------
+// Type Definitions (JSDoc)
+// --------------------
 
-    this.account = data.WarehouseCode || null;
-    this.reference = data.OrderNumber || null;
+/**
+ * @typedef {Object} Address
+ * @property {string} CountryCode
+ * @property {string} StateOrProvinceCode
+ * @property {string} [City]
+ * @property {string} PostalCode
+ */
 
-    this.shipment = {
-      shipper: {
-        postalCode: shipFrom.PostalCode || null,
-        country: shipFrom.Country || null
-      },
-      recipient: {
-        postalCode: shipTo.PostalCode || null,
-        country: shipTo.Country || null
-      },
-      packageCount: packages.length,
-      totalWeight: {
-        value: packages.reduce((sum, p) => sum + (p.Weight || 0), 0),
-        unit: "LB"
-      },
-      packages: packages.map((p, idx) => ({
-        sequence_number: idx + 1,
-        weight: {
-          value: p.Weight || 0,
-          unit: "LB"
-        },
-        dimensions: {
-          length: p.Length || 0,
-          width: p.Width || 0,
-          height: p.Height || 0,
-          unit: "IN"
-        }
-      }))
-    };
-  }
+/**
+ * @typedef {Object} PackageLineItem
+ * @property {number} [weight]
+ */
 
-  toJSON() {
-    return {
-      account: this.account,
-      reference: this.reference,
-      shipment: this.shipment
-    };
-  }
+/**
+ * @typedef {Object} ShipmentRequest
+ * @property {string} shipmentOrderCode
+ * @property {string} carrierSetupIdentifier
+ * @property {Object} shipFrom
+ * @property {Address} shipFrom.address
+ * @property {Object} shipTo
+ * @property {Address} shipTo.address
+ * @property {PackageLineItem[]} [requestedPackageLineItems]
+ */
 
-  // basic validation helper
-  isValid() {
-    const shipper = this.shipment.shipper;
-    const recipient = this.shipment.recipient;
-    return Boolean(shipper.postalCode && shipper.country && recipient.postalCode && recipient.country && this.shipment.packageCount > 0);
-  }
+/**
+ * @typedef {Object} RateShipmentRequest
+ * @property {Object} rateshipment
+ * @property {string} rateshipment.account
+ * @property {string} rateshipment.service
+ * @property {string} rateshipment.iso
+ * @property {string} rateshipment.province
+ * @property {string} rateshipment.city
+ * @property {string} rateshipment.postal
+ * @property {string} rateshipment.shipperiso
+ * @property {string} rateshipment.shipperprovince
+ * @property {string} rateshipment.shipperpostal
+ * @property {string} rateshipment.uom
+ * @property {string} rateshipment.weight
+ */
+
+// --------------------
+// Mapping Function
+// --------------------
+
+/**
+ * Maps a shipment request to a rate shipment request
+ * @param {ShipmentRequest} shipment
+ * @returns {RateShipmentRequest}
+ */
+function mapToRateShipment(dataObj) {
+
+  const shipment = Array.isArray(dataObj) ? dataObj[0] : dataObj;
+
+  const shipToAddress = shipment.shipTo?.address;
+  const shipFromAddress = shipment.shipFrom?.address;
+
+  const weight =
+    shipment.requestedPackageLineItems?.[0]?.weight ?? 0.16;
+
+  return {
+    rateshipment: {
+      account: "1001",
+      service: "canadazoneskipexpress",
+
+      iso: shipToAddress?.CountryCode ?? "",
+      province: shipToAddress?.StateOrProvinceCode ?? "",
+      city: shipToAddress?.City?.trim() ?? "",
+      postal: shipToAddress?.PostalCode?.replace(/\s/g, "") ?? "",
+
+      shipperiso: shipFromAddress?.CountryCode ?? "",
+      shipperprovince: shipFromAddress?.StateOrProvinceCode ?? "",
+      shipperpostal: shipFromAddress?.PostalCode?.replace(/\s/g, "") ?? "",
+
+      uom: "LB",
+      weight: weight.toString()
+    }
+  };
 }
+
+export default mapToRateShipment;
