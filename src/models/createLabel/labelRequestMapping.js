@@ -24,47 +24,47 @@ function mapToLabelShipment(dataObj) {
 
     return {
         shipment: {
-            service: shipment.shippingOption || "upstwodayair",
-            labelformat: shipment.labelSpecification?.labelFileType || "ZPL",
+            service: shipment.shippingOption,
+            labelformat: shipment.labelSpecification?.labelFileType,
             account: "1001",
-            reference: shipment.shipmentOrderCode || "",
-            ordernumber: shipment.shipmentOrderCode || "",
+            reference: shipment.shipmentOrderCode,
+            ordernumber: shipment.shipmentOrderCode,
             datetime: dateStr,
-            value: shipment.shipmentOrderTotalPrice || product.declaredValue || 0,
-            currency: shipment.currency || shipment.shipmentOrderCurrencyCode || "USD",
-            uom: weightObj.Units || "LB",
-            weight: weightObj.Value || 0,
-            dimunit: dimensionsObj.Units || "IN",
-            length: dimensionsObj.Length || 0,
-            width: dimensionsObj.Width || 0,
-            height: dimensionsObj.Height || 0,
+            value: shipment.shipmentOrderTotalPrice || product.declaredValue,
+            currency: shipment.currency || shipment.shipmentOrderCurrencyCode,
+            uom: weightObj.Units,
+            weight: weightObj.Value,
+            dimunit: dimensionsObj.Units,
+            length: dimensionsObj.Length,
+            width: dimensionsObj.Width,
+            height: dimensionsObj.Height,
             shipper: {
-                name: shipFromContact.companyName || shipFromContact.personName || "BEIS C/O METRO",
-                addr1: `${shipFromAddress.AddressLine1 || ""} ${shipFromAddress.AddressLine2 || ""}`.trim() || "1575 Rail Southern Court",
-                city: shipFromAddress.City || "Columbus",
-                state: shipFromAddress.StateOrProvinceCode || "OH",
-                country: shipFromAddress.CountryCode || "US",
-                postal: shipFromAddress.PostalCode?.replace(/\s/g, "") || "43217",
-                phone: shipFromContact.phoneNumber || "1111111111"
+                name: shipFromContact.companyName || shipFromContact.personName,
+                addr1: `${shipFromAddress.AddressLine1 || ""} ${shipFromAddress.AddressLine2 || ""}`.trim(),
+                city: shipFromAddress.City,
+                state: shipFromAddress.StateOrProvinceCode,
+                country: shipFromAddress.CountryCode,
+                postal: shipFromAddress.PostalCode?.replace(/\s/g, ""),
+                phone: shipFromContact.phoneNumber
             },
             consignee: {
-                name: shipToContact.personName || shipToContact.companyName || "Test Test",
-                addr1: `${shipToAddress.AddressLine1 || ""} ${shipToAddress.AddressLine2 || ""}`.trim() || "8374 nw 64th street",
-                city: shipToAddress.City || "MIAMI",
-                state: shipToAddress.StateOrProvinceCode || "FL",
-                country: shipToAddress.CountryCode || "US",
-                postal: shipToAddress.PostalCode?.replace(/\s/g, "") || "33166-2865",
-                phone: shipToContact.phoneNumber || "1111111111",
-                email: shipToContact.emailAddress || ""
+                name: shipToContact.personName || shipToContact.companyName,
+                addr1: `${shipToAddress.AddressLine1 || ""} ${shipToAddress.AddressLine2 || ""}`.trim(),
+                city: shipToAddress.City,
+                state: shipToAddress.StateOrProvinceCode,
+                country: shipToAddress.CountryCode,
+                postal: shipToAddress.PostalCode?.replace(/\s/g, ""),
+                phone: shipToContact.phoneNumber,
+                email: shipToContact.emailAddress
             },
             item: {
-                itemcode: product.sku || "BEIS123361",
-                description: product.description || "The Weekender in Black",
-                qty: product.quantity || 1,
+                itemcode: product.sku,
+                description: product.description,
+                qty: product.quantity,
                 unit: "EA",
-                value: product.declaredValue || 0,
-                hscode: product.hsTariffCode || "4209.92.3131",
-                origin: product.originCountryCode || "US"
+                value: product.declaredValue,
+                hscode: product.hsTariffCode,
+                origin: product.originCountryCode
             }
         }
     };
