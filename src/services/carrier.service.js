@@ -1,6 +1,7 @@
 import mapToRateShipment from "../models/getRates/rateRequest.js";
 import RateResponse from "../models/getRates/rateResponse.js";
-import LabelRequest from "../models/createLabel/labelRequest.js";
+import mapToLabelShipment from "../models/createLabel/labelRequestMapping.js";
+
 import LabelResponse from "../models/createLabel/labelResponse.js";
 import VoidRequest from "../models/voidLabel/voidRequest.js";
 import VoidResponse from "../models/voidLabel/voidResponse.js";
@@ -8,11 +9,29 @@ import EODRequest from "../models/endOfDay/eodRequest.js";
 import EODResponse from "../models/endOfDay/eodResponse.js";
 import { callCarrierApi } from "./carrierApi.js";
 
+/**
+ * Helper to ensure error message is a string and readable
+ */
+const formatErrorMessage = (error) => {
+  if (!error) return "Unknown error";
+  if (typeof error === "string") return error;
+  if (error.message && typeof error.message === "string") return error.message;
+  if (error.ErrorMessage && typeof error.ErrorMessage === "string") return error.ErrorMessage;
+  if (error.error && typeof error.error === "string") return error.error;
+
+  try {
+    return JSON.stringify(error);
+  } catch (e) {
+    return String(error);
+  }
+};
+
+
 export default {
   async getRates(data) {
     console.log(`[${new Date().toISOString()}] Building rate request for OrderNumber: ${data.OrderNumber || 'N/A'}`);
     const requestObj = mapToRateShipment(data);
-    
+
     try {
       console.log(`[${new Date().toISOString()}] Calling carrier API for getRates`);
 
@@ -20,44 +39,74 @@ export default {
       console.log(`[${new Date().toISOString()}] Carrier API response received`);
       // Assume apiResponse is an array of rates or has a 'rates' property
       const rates = !Array.isArray(apiResponse.rateshipmentresponse) && !!apiResponse.rateshipmentresponse ? [apiResponse.rateshipmentresponse] :
-       (apiResponse.rateshipmentresponse ? apiResponse.rateshipmentresponse : []);
+        (apiResponse.rateshipmentresponse ? apiResponse.rateshipmentresponse : []);
       const resp = new RateResponse(rates);
       console.log(`[${new Date().toISOString()}] Processed ${rates.length} rates`);
       return { Request: requestObj, Rates: resp.toJSON().Rates };
     } catch (error) {
-      console.error(`[${new Date().toISOString()}] Carrier API error:`, error.message);
+      const errorDetail = error.response?.data || error.message;
+      const finalMessage = formatErrorMessage(errorDetail);
+      console.error(`[${new Date().toISOString()}] Carrier API error (getRates):`, errorDetail);
       // Fallback to sample rates on error
       const sampleRates = [
         { ServiceLevel: "GROUND", Cost: 12.75, Currency: "USD", EstimatedDeliveryDays: 3 }
       ];
       const resp = new RateResponse(sampleRates);
       console.log(`[${new Date().toISOString()}] Falling back to sample rates`);
-      return { Request: request, Rates: resp.toJSON().Rates };
+      return { Request: requestObj, Rates: resp.toJSON().Rates };
     }
+
   },
 
   async createLabel(data) {
-    console.log(`[${new Date().toISOString()}] Building label request for OrderNumber: ${data.OrderNumber || 'N/A'}`);
-    const requestObj = new LabelRequest(data);
+    const shipment = Array.isArray(data) ? data[0] : data;
+    const orderNo = shipment?.shipmentOrderCode || shipment?.OrderNumber || 'N/A';
 
-    if (!requestObj.isValid()) {
-      throw new Error("Invalid label request: missing required fields");
-    }
-
-    const request = requestObj.toJSON();
+    console.log(`[${new Date().toISOString()}] Building label request for Order: ${orderNo}`);
+    const requestObj = mapToLabelShipment(data);
+    console.log(requestObj);
 
     try {
       console.log(`[${new Date().toISOString()}] Calling carrier API for createLabel`);
-      const apiResponse = await callCarrierApi('createLabel', request);
+      const apiResponse = await callCarrierApi('createLabel', requestObj);
       console.log(`[${new Date().toISOString()}] Carrier API response received`);
-      const resp = new LabelResponse(apiResponse);
+
+      // Extract nested response if it exists
+      const labelData = apiResponse.shipmentresponse || apiResponse;
+
+      // Check for API-level errors
+      if (labelData.error || labelData.errormessage) {
+        const errMsg = formatErrorMessage(labelData.error || labelData.errormessage);
+        throw new Error(errMsg);
+      }
+
+      // Check if we actually got a tracking number
+      if (!labelData.tracking && !labelData.base64 && !labelData.tracknbr && !labelData.label) {
+        console.warn(`[${new Date().toISOString()}] API returned success but missing tracking/label data`, apiResponse);
+
+        // If there's an error nested elsewhere, use it
+        const possibleError = apiResponse.error || apiResponse.errormessage;
+        if (possibleError) {
+          throw new Error(formatErrorMessage(possibleError));
+        }
+
+        throw new Error("Carrier API returned an empty response (no tracking or label data)");
+      }
+
+
+      const resp = new LabelResponse(labelData);
       console.log(`[${new Date().toISOString()}] Label created with tracking: ${resp.tracking}`);
       return resp.toJSON();
     } catch (error) {
-      console.error(`[${new Date().toISOString()}] Carrier API error:`, error.message);
-      throw error;
+      const errorDetail = error.response?.data || error.message;
+      const finalMessage = formatErrorMessage(errorDetail);
+      console.error(`[${new Date().toISOString()}] Carrier API error (createLabel):`, errorDetail);
+      throw new Error(finalMessage);
     }
+
+
   },
+
 
   async voidLabel(data) {
     console.log(`[${new Date().toISOString()}] Building void request for tracking: ${data.TrackingNumber || 'N/A'}`);

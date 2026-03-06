@@ -11,9 +11,12 @@ export default {
 
     async createLabel(req, res) {
         try {
-            console.log(`[${new Date().toISOString()}] createLabel called with OrderNumber: ${req.body.OrderNumber || 'N/A'}`);
-            console.log(`[${new Date().toISOString()}] Label - Request body:`, req.body);
+            const data = Array.isArray(req.body) ? req.body[0] : req.body;
+            const orderNo = data?.shipmentOrderCode || data?.OrderNumber || 'N/A';
+
+            console.log(`[${new Date().toISOString()}] createLabel called for Order: ${orderNo}`);
             const label = await carrierService.createLabel(req.body);
+
             console.log(`[${new Date().toISOString()}] createLabel returning tracking: ${label.TrackingNumber}`);
             res.json({
                 Success: true,
