@@ -18,12 +18,7 @@ export default {
             const label = await carrierService.createLabel(req.body);
 
             console.log(`[${new Date().toISOString()}] createLabel returning tracking: ${label.TrackingNumber}`);
-            res.json({
-                Success: true,
-                TrackingNumber: label.TrackingNumber,
-                LabelFormat: label.LabelFormat,
-                LabelBase64: label.LabelBase64
-            });
+            res.json(label);
         } catch (e) {
             console.log(`[${new Date().toISOString()}] createLabel error: ${e.message}`);
             res.json({

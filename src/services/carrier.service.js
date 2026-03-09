@@ -74,14 +74,25 @@ export default {
       // Extract nested response if it exists
       const labelData = apiResponse.shipmentresponse || apiResponse;
 
-      // Check for API-level errors
+      // Check for API-level errors (Legacy structure)
       if (labelData.error || labelData.errormessage) {
         const errMsg = formatErrorMessage(labelData.error || labelData.errormessage);
         throw new Error(errMsg);
       }
 
-      // Check if we actually got a tracking number
-      if (!labelData.tracking && !labelData.base64 && !labelData.tracknbr && !labelData.label) {
+      // Check for API-level errors (New structure)
+      if (labelData.data?.[0]) {
+        const mainData = labelData.data[0];
+        if (mainData.isSuccessful === false) {
+          const errMsg = mainData.message?.length > 0 ? mainData.message.join(', ') : "Request was unsuccessful";
+          throw new Error(errMsg);
+        }
+      }
+
+      const resp = new LabelResponse(labelData, data);
+
+      // Check if we actually got a tracking number (from either structure)
+      if (!resp.tracking && !resp.base64) {
         console.warn(`[${new Date().toISOString()}] API returned success but missing tracking/label data`, apiResponse);
 
         // If there's an error nested elsewhere, use it
@@ -93,8 +104,6 @@ export default {
         throw new Error("Carrier API returned an empty response (no tracking or label data)");
       }
 
-
-      const resp = new LabelResponse(labelData);
       console.log(`[${new Date().toISOString()}] Label created with tracking: ${resp.tracking}`);
       return resp.toJSON();
     } catch (error) {

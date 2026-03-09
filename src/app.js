@@ -5,11 +5,14 @@ import shippingController from "./controllers/shipping.controller.js";
 dotenv.config();
 
 const app = express();
+app.use((req, res, next) => {
+    console.log(`[${new Date().toISOString()}] Incoming Request: ${req.method} ${req.url}`);
+    next();
+});
 app.use(express.json());
 
 // Middleware to authenticate API Key and Secret
 const authenticateApiKey = (req, res, next) => {
-
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith("Basic ")) {
