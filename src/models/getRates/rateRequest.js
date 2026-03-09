@@ -61,6 +61,14 @@ function mapToRateShipment(dataObj) {
   const weight =
     shipment.requestedPackageLineItems?.[0]?.weight ?? 0.16;
 
+  let uom = weight.Units || "LB";
+  let weightValue = weight.Value !== undefined ? weight.Value : (typeof weight === "number" ? weight : 0);
+
+  if (uom.toLowerCase() === "oz") {
+    uom = "LB";
+    weightValue = (Number(weightValue) / 16).toFixed(2);
+  }
+
   return {
     rateshipment: {
       account: "1001",
@@ -75,8 +83,8 @@ function mapToRateShipment(dataObj) {
       shipperprovince: shipFromAddress?.StateOrProvinceCode ?? "",
       shipperpostal: shipFromAddress?.PostalCode?.replace(/\s/g, "") ?? "",
 
-      uom: "LB",
-      weight: weight.toString()
+      uom: uom,
+      weight: weightValue
     }
   };
 }

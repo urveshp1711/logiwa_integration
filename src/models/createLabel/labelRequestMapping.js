@@ -22,6 +22,14 @@ function mapToLabelShipment(dataObj) {
     const now = new Date();
     const dateStr = shipment.plannedPickUpDate ? shipment.plannedPickUpDate.split('T')[0] : now.toISOString().split('T')[0];
 
+    let uom = weightObj.Units || "LB";
+    let weightValue = weightObj.Value !== undefined ? weightObj.Value : (typeof weightObj === "number" ? weightObj : 0);
+
+    if (uom.toLowerCase() === "oz") {
+        uom = "LB";
+        weightValue = (Number(weightValue) / 16).toFixed(2);
+    }
+
     return {
         shipment: {
             service: shipment.shippingOption,
@@ -32,8 +40,8 @@ function mapToLabelShipment(dataObj) {
             datetime: dateStr,
             value: shipment.shipmentOrderTotalPrice || product.declaredValue,
             currency: shipment.currency || shipment.shipmentOrderCurrencyCode,
-            uom: weightObj.Units,
-            weight: weightObj.Value,
+            uom: uom,
+            weight: weightValue,
             dimunit: dimensionsObj.Units,
             length: dimensionsObj.Length,
             width: dimensionsObj.Width,
