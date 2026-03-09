@@ -8,7 +8,7 @@ const httpsAgent = new https.Agent({
 export const callCarrierApi = async (endpoint, data) => {
   try {
     const url = `${process.env.CARRIER_BASE_URL}/api`;
-
+    console.log(`wizmo api url - ${url}`)
     const response = await axios.post(
       url,
       data,

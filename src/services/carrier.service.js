@@ -31,12 +31,14 @@ export default {
   async getRates(data) {
     console.log(`[${new Date().toISOString()}] Building rate request for OrderNumber: ${data.OrderNumber || 'N/A'}`);
     const requestObj = mapToRateShipment(data);
+    console.log(requestObj);
 
     try {
       console.log(`[${new Date().toISOString()}] Calling carrier API for getRates`);
 
       const apiResponse = await callCarrierApi('getRates', requestObj);
       console.log(`[${new Date().toISOString()}] Carrier API response received`);
+      console.log(apiResponse);
       // Assume apiResponse is an array of rates or has a 'rates' property
       const rates = !Array.isArray(apiResponse.rateshipmentresponse) && !!apiResponse.rateshipmentresponse ? [apiResponse.rateshipmentresponse] :
         (apiResponse.rateshipmentresponse ? apiResponse.rateshipmentresponse : []);
@@ -70,6 +72,7 @@ export default {
       console.log(`[${new Date().toISOString()}] Calling carrier API for createLabel`);
       const apiResponse = await callCarrierApi('createLabel', requestObj);
       console.log(`[${new Date().toISOString()}] Carrier API response received`);
+      console.log(apiResponse);
 
       // Extract nested response if it exists
       const labelData = apiResponse.shipmentresponse || apiResponse;
