@@ -2,10 +2,11 @@ import carrierService from "../services/carrier.service.js";
 
 export default {
     async getRates(req, res) {
-        console.log(`[${new Date().toISOString()}] getRates called with OrderNumber: ${req.body.OrderNumber || 'N/A'}`);
-        console.log(`[${new Date().toISOString()}] Rates - Request body:`, req.body);
+        console.log('Logiwa req');
+        console.log(JSON.stringify(req.body));
         const result = await carrierService.getRates(req.body);
-        console.log(`[${new Date().toISOString()}] getRates returning ${result.Rates.length} rates`);
+        console.log('Logiwa res');
+        console.log(JSON.stringify(result));
         res.json({ Success: true, Rates: result.Rates });
     },
 
@@ -14,10 +15,13 @@ export default {
             const data = Array.isArray(req.body) ? req.body[0] : req.body;
             const orderNo = data?.shipmentOrderCode || data?.OrderNumber || 'N/A';
 
-            console.log(`[${new Date().toISOString()}] createLabel called for Order: ${orderNo}`);
+            console.log('Logiwa req');
+            console.log(JSON.stringify(req.body));
             const label = await carrierService.createLabel(req.body);
 
-            console.log(`[${new Date().toISOString()}] createLabel returning tracking: ${label.TrackingNumber}`);
+            console.log('Logiwa res');
+            console.log(JSON.stringify(label));
+
             res.json(label);
         } catch (e) {
             console.log(`[${new Date().toISOString()}] createLabel error: ${e.message}`);
