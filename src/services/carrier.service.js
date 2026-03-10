@@ -8,6 +8,7 @@ import VoidResponse from "../models/voidLabel/voidResponse.js";
 import EODRequest from "../models/endOfDay/eodRequest.js";
 import EODResponse from "../models/endOfDay/eodResponse.js";
 import { callCarrierApi } from "./carrierApi.js";
+import { storageService } from "./storage.service.js";
 
 /**
  * Helper to ensure error message is a string and readable
@@ -93,6 +94,25 @@ export default {
       }
 
       const resp = new LabelResponse(labelData, data);
+
+      // Upload label to Azure Storage if base64 exists
+      if (resp.base64 && orderNo !== 'N/A') {
+        try {
+          const extension = resp.format?.toLowerCase() === 'zpl' ? 'zpl' : 'pdf';
+          const filename = `${orderNo}_${resp.tracking || Date.now()}.${extension}`;
+          const labelUrl = await storageService.uploadLabel(filename, resp.base64);
+
+          // Update labelUrl in packageResponse
+          if (resp.packageResponse && resp.packageResponse.length > 0) {
+            resp.packageResponse.forEach(pkg => {
+              pkg.labelUrl = labelUrl;
+            });
+          }
+        } catch (storageError) {
+          console.error(`[${new Date().toISOString()}] Failed to upload label to storage:`, storageError.message);
+          // Don't fail the whole request if storage fails, just log it
+        }
+      }
 
       // Check if we actually got a tracking number (from either structure)
       if (!resp.tracking && !resp.base64) {
