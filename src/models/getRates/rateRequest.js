@@ -1,3 +1,5 @@
+import { mapShippingOptionToService } from "../../utils/serviceMapping.js";
+
 // --------------------
 // Type Definitions (JSDoc)
 // --------------------
@@ -72,7 +74,7 @@ function mapToRateShipment(dataObj) {
   return {
     rateshipment: {
       account: "1001",
-      // service: "canadazoneskipexpress",
+      service: mapShippingOptionToService(shipment.shippingOption),
 
       iso: shipToAddress?.CountryCode ?? "",
       province: shipToAddress?.StateOrProvinceCode ?? "",
