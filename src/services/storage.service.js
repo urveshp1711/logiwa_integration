@@ -28,11 +28,11 @@ export const storageService = {
         try {
             const blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
 
-            // Implement path logic similar to C# example
-            // Assuming filename like "order_123.pdf"
-            // Resulting path: yyyy-mm-dd/order_123.pdf
-            const dateStr = new Date().toISOString().split('T')[0];
-            const blobPath = `shipment/labels/logiwa/${dateStr}/${filename}`;
+            // Implement path logic: shipment/labels/logiwa/yyyy/mm/{filename}
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const blobPath = `shipment/labels/logiwa/${year}/${month}/${filename}`;
 
             const containerClient = blobServiceClient.getContainerClient(containerName);
 
