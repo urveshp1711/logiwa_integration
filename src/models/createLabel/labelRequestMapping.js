@@ -1,4 +1,3 @@
-import { mapShippingOptionToService } from "../../utils/serviceMapping.js";
 
 /**
  * Maps a shipment request to a label shipment request
@@ -34,7 +33,7 @@ function mapToLabelShipment(dataObj) {
 
     return {
         shipment: {
-            service: mapShippingOptionToService(shipment.shippingOption),
+            service: shipment.shippingOption,
             labelformat: shipment.labelSpecification?.labelFileType,
             account: "1001",
             reference: shipment.shipmentOrderCode,
