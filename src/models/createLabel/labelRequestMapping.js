@@ -72,7 +72,7 @@ function mapToLabelShipment(dataObj) {
                 qty: product.quantity,
                 unit: "EA",
                 value: product.declaredValue,
-                hscode: product.hsTariffCode || '6110.20.00.91',
+                hscode: product.hsTariffCode,
                 origin: product.originCountryCode
             }
         }
